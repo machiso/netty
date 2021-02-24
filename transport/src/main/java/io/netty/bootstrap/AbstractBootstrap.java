@@ -231,6 +231,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      * Create a new {@link Channel} and bind it.
      */
     public ChannelFuture bind() {
+
+        //validate 操作
         validate();
         SocketAddress localAddress = this.localAddress;
         if (localAddress == null) {
@@ -269,6 +271,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
+
+        //初始化channel并且进行注册
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
