@@ -409,6 +409,7 @@ test
 
   <modules>
     <module>all</module>
+    <module>netty-demo</module>
     <module>dev-tools</module>
     <module>common</module>
     <module>buffer</module>
