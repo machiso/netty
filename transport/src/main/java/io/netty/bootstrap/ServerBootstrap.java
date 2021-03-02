@@ -129,9 +129,14 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
 
     @Override
     void init(Channel channel) {
+        //对serversocketchannel进行相关网络参数的设置
         setChannelOptions(channel, newOptionsArray(), logger);
+
+        //对serversocketchannel进行一些属性的设置
         setAttributes(channel, newAttributesArray());
 
+
+        //每个channel对应一个ChannelPipeline，对网络请求处理的一条链路
         ChannelPipeline p = channel.pipeline();
 
         final EventLoopGroup currentChildGroup = childGroup;
@@ -139,6 +144,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         final Entry<ChannelOption<?>, Object>[] currentChildOptions = newOptionsArray(childOptions);
         final Entry<AttributeKey<?>, Object>[] currentChildAttrs = newAttributesArray(childAttrs);
 
+        //对网络请求对处理链路中加入一个自己内置的处理逻辑
         p.addLast(new ChannelInitializer<Channel>() {
             @Override
             public void initChannel(final Channel ch) {
@@ -148,9 +154,12 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                     pipeline.addLast(handler);
                 }
 
+                //异步的方式
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {
+
+                        //netty内置的一个handler
                         pipeline.addLast(new ServerBootstrapAcceptor(
                                 ch, currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
                     }

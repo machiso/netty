@@ -24,6 +24,7 @@ public class NioSerer {
 
     public static void main(String[] args) {
 
+        //初始化ServerSocketChannel并且注册到selector选择器上面去，让选择器监听OP_ACCEPT事件
         init();
 
         listen();
@@ -34,15 +35,20 @@ public class NioSerer {
         ServerSocketChannel serverSocketChannel = null;
 
         try {
+
+            //初始化selector选择器
             selector = Selector.open();
 
+            //初始化serversocketchannel
             serverSocketChannel = ServerSocketChannel.open();
 
-            //非阻塞模式
+            //设置为非阻塞模式
             serverSocketChannel.configureBlocking(false);
+
+            //监听某个端口
             serverSocketChannel.socket().bind(new InetSocketAddress(9000),100);
 
-            //serverSocketChannel
+            //将serverSocketChannel注册到selector上面去，并且让selector监听ServerSocketChannel的OP_ACCEPT事件
             serverSocketChannel.register(selector,SelectionKey.OP_ACCEPT);
         }catch (Exception e){
             e.printStackTrace();

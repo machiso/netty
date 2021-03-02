@@ -308,10 +308,16 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         }
     }
 
+    //初始化serverSocketChannel并且注册到selector上去
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+            //通过selectorProvider创建了serversocketchannel，并且设置为非阻塞
+            //准备好了将要监听的事件，op_accept
             channel = channelFactory.newChannel();
+
+            //初始化channel，让serversocketchannel监听某个端口号，设置一些网络参数
+            //并且让serversocketchannel注册到selector上面去，关注op_accept事件
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {
@@ -323,6 +329,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             // as the Channel is not registered yet we need to force the usage of the GlobalEventExecutor
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
+
 
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
