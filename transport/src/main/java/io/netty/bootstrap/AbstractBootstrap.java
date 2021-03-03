@@ -308,6 +308,11 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         }
     }
 
+    //资金中台-资金接入，把原来接一个资金方新建一个应用的模式进行高度抽象，把公共的一些逻辑进行高度抽取为可复用的流程，
+    // 底层通过业务流的配置，自己设计流程串联起来，尽可能复用公共的代码逻辑，例如授信，还款失算，放款，还款，还款查询等；
+    // 各个资方的特性通过配置项进行单独的去进行处理，特殊的逻辑
+    //
+
     //初始化serverSocketChannel并且注册到selector上去
     final ChannelFuture initAndRegister() {
         Channel channel = null;
