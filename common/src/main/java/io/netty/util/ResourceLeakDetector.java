@@ -326,6 +326,13 @@ public class ResourceLeakDetector<T> {
      * This method is called when an untraced leak is detected. It can be overridden for tracking how many times leaks
      * have been detected.
      */
+
+    //当内存泄露被检测出来，会打印报错日志
+    //untraced leak
+    //netty中广泛使用直接内存，这样效率更高。但是直接内存不受GC的控制，需要人为的手动分配和回收
+    //JVM GC只负责回收JAVA堆上的引用以及堆中内存
+    //直接内存使用中，需要在JVM GC回收buf之前，手动调用release()方法去释放直接内存，否则存在内存泄漏
+
     protected void reportUntracedLeak(String resourceType) {
         logger.error("LEAK: {}.release() was not called before it's garbage-collected. " +
                 "Enable advanced leak reporting to find out where the leak occurred. " +

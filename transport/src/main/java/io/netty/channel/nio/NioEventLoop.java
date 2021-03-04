@@ -353,6 +353,17 @@ public final class NioEventLoop extends SingleThreadEventLoop {
      * Replaces the current {@link Selector} of this event loop with newly created {@link Selector}s to work
      * around the infamous epoll 100% CPU bug.
      */
+
+    //解决cpu 100%的问题
+    //JDK NIO类库最著名的就是 epoll bug了，它会导致Selector空轮询，IO线程CPU 100%，严重影响系统的安全性和可靠性
+    //epoll-bug会导致无效的状态选择和100%的CPU利用率。也就是Selector不管有无感兴趣的事件发生，select总是不阻塞就返回。
+    // 这会导致select方法总是无效的被调用然后立即返回，依次不断的进行空轮询，导致CPU的利用率达到了100%
+    //如何解决呢？
+    //重新创建 Selector，并把原 Selector 上注册的 Channel 迁移到新的 Selector上
+    //首先，通过openSelector()先构造一个新的SelectorTuple。
+    // 然后，遍历oldSelector中的所有SelectionKey，依次判断其有效性，如果有效则将其重新注册到新的Selector上，并将旧的SelectionKey执行cancel操作，进行相关的数据清理，以便最后oldSelector好进行关闭。
+    // 最后，在将所有的SelectionKey数据移至新的Selector后，将newSelectorTuple的selector和unwrappedSelector赋值给相应的成员属性。最后，调用oldSelector.close()关闭旧的Selector以进行资源的释放。
+
     public void rebuildSelector() {
         if (!inEventLoop()) {
             execute(new Runnable() {
@@ -475,6 +486,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     continue;
                 }
 
+                //for循环每轮询一次，selectCnt值会加1
                 selectCnt++;
                 cancelledKeys = 0;
                 needsToSelectAgain = false;
@@ -483,6 +495,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 if (ioRatio == 100) {
                     try {
                         if (strategy > 0) {
+                            //入口
                             processSelectedKeys();
                         }
                     } finally {
@@ -508,6 +521,10 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                                 selectCnt - 1, selector);
                     }
                     selectCnt = 0;
+
+                    //代码走到这个地方，代表strategy 的值为0
+                    //表示select方法未获取到感兴趣到事件
+
                 } else if (unexpectedSelectorWakeup(selectCnt)) { // Unexpected wakeup (unusual case)
                     selectCnt = 0;
                 }
@@ -554,12 +571,20 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             }
             return true;
         }
+
+        //如果selector在select(long timeout)方法timeout超时之前返回，并且获取取到的感兴趣的事件为0，
+        //同时已经超过了512次，则会认为当前的selector在空轮询。
+        //因为select方法，java规定，如果没有感兴趣的事件的话，会一直阻塞，直到超时
+        //如果超时之前就返回，则肯定发生了问题，会认为selector一直在空轮询
+
         if (SELECTOR_AUTO_REBUILD_THRESHOLD > 0 &&
                 selectCnt >= SELECTOR_AUTO_REBUILD_THRESHOLD) {
             // The selector returned prematurely many times in a row.
             // Rebuild the selector to work around the problem.
             logger.warn("Selector.select() returned prematurely {} times in a row; rebuilding Selector {}.",
                     selectCnt, selector);
+
+            //此处会对selector进行重构
             rebuildSelector();
             return true;
         }
@@ -580,6 +605,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
     private void processSelectedKeys() {
         if (selectedKeys != null) {
+            //bingo
             processSelectedKeysOptimized();
         } else {
             processSelectedKeysPlain(selector.selectedKeys());

@@ -140,6 +140,8 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             }
             final ChannelPipeline pipeline = pipeline();
             final ByteBufAllocator allocator = config.getAllocator();
+
+            //recvBufAllocHandle 获取返回的数据
             final RecvByteBufAllocator.Handle allocHandle = recvBufAllocHandle();
             allocHandle.reset(config);
 

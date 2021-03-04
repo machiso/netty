@@ -152,6 +152,8 @@ public class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
      * @see #connect()
      */
     private ChannelFuture doResolveAndConnect(final SocketAddress remoteAddress, final SocketAddress localAddress) {
+
+        //注意，这里的initAndRegister获取的channel是NioSocketChannel，和server端传入的有差别
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
 
@@ -177,6 +179,8 @@ public class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
                         // Registration was successful, so set the correct executor to use.
                         // See https://github.com/netty/netty/issues/2586
                         promise.registered();
+
+                        //和server端建立连接
                         doResolveAndConnect0(channel, remoteAddress, localAddress, promise);
                     }
                 }
@@ -214,6 +218,7 @@ public class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
                     promise.setFailure(resolveFailureCause);
                 } else {
                     // Succeeded to resolve immediately; cached? (or did a blocking lookup)
+                    //入口
                     doConnect(resolveFuture.getNow(), localAddress, promise);
                 }
                 return promise;
@@ -262,6 +267,7 @@ public class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
         ChannelPipeline p = channel.pipeline();
         p.addLast(config.handler());
 
+        //设置一些可选项和参数
         setChannelOptions(channel, newOptionsArray(), logger);
         setAttributes(channel, newAttributesArray());
     }

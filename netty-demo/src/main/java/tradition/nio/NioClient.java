@@ -29,11 +29,18 @@ public class NioClient {
             Selector selector = null;
 
             try {
+
+                //初始化socketchannel，并且设置为非阻塞
+                //传统的socket模型是阻塞的，客户端一个连接请求需要服务端对应一个线程进行处理，
+                // 如果很多请求的话，服务端端线程压力会很大，很容易造成宕机，cpu飙升
                 channel = SocketChannel.open();
                 channel.configureBlocking(false);
                 channel.connect(new InetSocketAddress("localhost",9000));
 
+                //初始化selector
                 selector = Selector.open();
+
+                //将socketChannel注册到selector上面去，后面让selector负责监听连接事件
                 channel.register(selector, SelectionKey.OP_ACCEPT);
 
                 while (true){

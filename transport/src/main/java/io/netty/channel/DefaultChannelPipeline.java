@@ -1334,6 +1334,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             unsafe.bind(localAddress, promise);
         }
 
+
+        //和客户端建立连接
         @Override
         public void connect(
                 ChannelHandlerContext ctx,

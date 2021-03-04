@@ -530,6 +530,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         final AbstractChannelHandlerContext next = findContextOutbound(MASK_CONNECT);
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
+            //入口
             next.invokeConnect(remoteAddress, localAddress, promise);
         } else {
             safeExecute(executor, new Runnable() {
@@ -545,6 +546,8 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     private void invokeConnect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
         if (invokeHandler()) {
             try {
+
+                //建立连接
                 ((ChannelOutboundHandler) handler()).connect(this, remoteAddress, localAddress, promise);
             } catch (Throwable t) {
                 notifyOutboundHandlerException(t, promise);
