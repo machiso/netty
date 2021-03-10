@@ -161,6 +161,8 @@ public class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
             if (!regFuture.isSuccess()) {
                 return regFuture;
             }
+
+            //客户端和server端建立connect连接
             return doResolveAndConnect0(channel, remoteAddress, localAddress, channel.newPromise());
         } else {
             // Registration future is almost always fulfilled already, but just in case it's not.
